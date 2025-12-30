@@ -1,5 +1,10 @@
 Binance Futures Testnet Trading Bot (Python)
 
+## 📸 Demo Screenshot
+
+### Streamlit UI Preview
+![Trading Bot UI](demo.png)
+
 
 A simplified trading bot built using Python and the official Binance API.
 This project allows users to place Market, Limit, and Stop-Limit (Bonus) 
