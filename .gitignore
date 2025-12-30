@@ -1,0 +1,30 @@
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+
+# IDE / Editor settings
+.vscode/
+.idea/
+
+# Streamlit cache
+.streamlit/
+
+# Pandoc / PDF outputs (optional)
+README.pdf
+*.pdf

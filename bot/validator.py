@@ -1,6 +1,7 @@
 from config.settings import (
     ORDER_TYPE_MARKET,
     ORDER_TYPE_LIMIT,
+    ORDER_TYPE_STOP_LIMIT,
     SIDE_BUY,
     SIDE_SELL
 )
@@ -18,8 +19,13 @@ def validate_side(side):
 
 
 def validate_order_type(order_type):
-    if order_type not in [ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT]:
-        return False, "Order type must be MARKET or LIMIT"
+    valid_types = [
+        ORDER_TYPE_MARKET,
+        ORDER_TYPE_LIMIT,
+        ORDER_TYPE_STOP_LIMIT
+    ]
+    if order_type not in valid_types:
+        return False, "Order type must be MARKET, LIMIT, or STOP_LIMIT"
     return True, ""
 
 
