@@ -2,7 +2,11 @@ from dotenv import load_dotenv
 import os
 
 from bot.basic_bot import BasicBot
-from bot.orders import place_market_order, place_limit_order
+from bot.orders import (
+    place_market_order,
+    place_limit_order,
+    place_stop_limit_order
+)
 from bot.validator import (
     validate_symbol,
     validate_side,
@@ -10,7 +14,11 @@ from bot.validator import (
     validate_quantity,
     validate_price
 )
-from config.settings import ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT
+from config.settings import (
+    ORDER_TYPE_MARKET,
+    ORDER_TYPE_LIMIT,
+    ORDER_TYPE_STOP_LIMIT
+)
 
 def main():
     load_dotenv()
@@ -22,33 +30,30 @@ def main():
         print("❌ API keys not found. Please check .env file")
         return
 
+    # ---------------- CLI INPUT ----------------
     symbol = input("Enter Symbol (e.g. BTCUSDT): ").upper()
-    order_type = input("Enter Order Type (MARKET / LIMIT): ").upper()
+    order_type = input(
+        "Enter Order Type (MARKET / LIMIT / STOP_LIMIT): "
+    ).upper()
     side = input("Enter Side (BUY / SELL): ").upper()
     quantity = input("Enter Quantity: ")
 
-    valid, msg = validate_symbol(symbol)
-    if not valid:
-        print(f"❌ {msg}")
-        return
+    # ---------------- VALIDATION ----------------
+    for check, value in [
+        (validate_symbol, symbol),
+        (validate_order_type, order_type),
+        (validate_side, side),
+        (validate_quantity, quantity),
+    ]:
+        valid, msg = check(value)
+        if not valid:
+            print(f"❌ {msg}")
+            return
 
-    valid, msg = validate_order_type(order_type)
-    if not valid:
-        print(f"❌ {msg}")
-        return
-
-    valid, msg = validate_side(side)
-    if not valid:
-        print(f"❌ {msg}")
-        return
-
-    valid, msg = validate_quantity(quantity)
-    if not valid:
-        print(f"❌ {msg}")
-        return
-
+    # ---------------- BOT INIT ----------------
     bot = BasicBot(api_key, api_secret, testnet=True)
 
+    # ---------------- ORDER EXECUTION ----------------
     if order_type == ORDER_TYPE_MARKET:
         order = place_market_order(
             bot.client,
@@ -72,10 +77,31 @@ def main():
             float(quantity),
             float(price)
         )
+
+    elif order_type == ORDER_TYPE_STOP_LIMIT:
+        stop_price = input("Enter Stop Price: ")
+        limit_price = input("Enter Limit Price: ")
+
+        for p in [stop_price, limit_price]:
+            valid, msg = validate_price(p)
+            if not valid:
+                print(f"❌ {msg}")
+                return
+
+        order = place_stop_limit_order(
+            bot.client,
+            symbol,
+            side,
+            float(quantity),
+            float(stop_price),
+            float(limit_price)
+        )
+
     else:
         print("❌ Unsupported order type")
         return
 
+    # ---------------- OUTPUT ----------------
     if order:
         status = order.get("status")
 
@@ -89,7 +115,7 @@ def main():
         print(f"Order ID     : {order.get('orderId')}")
 
         if status != "FILLED":
-            print("ℹ️ Note: Order is placed but not filled yet (LIMIT order).")
+            print("ℹ️ Note: Order is placed but not filled yet.")
 
         print("===============================================\n")
     else:
